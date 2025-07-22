@@ -73,7 +73,7 @@ def get_xroot_url(eos_path):
 
 
 class ICJob(HTCondorJob):
-    config_name = "cern"
+    config_name = "ic"
 
     def __init__(self, scheduler=None, name=None, disk=None, **base_class_kwargs):
         if disk is None:
@@ -95,9 +95,9 @@ class ICCluster(HTCondorCluster):
     __doc__ = (
         HTCondorCluster.__doc__
         + """
-    A customized :class:`dask_jobqueue.HTCondorCluster` subclass for spawning Dask workers in the CERN HTCondor pool
+    A customized :class:`dask_jobqueue.HTCondorCluster` subclass for spawning Dask workers in the IC HTCondor pool
 
-    It provides the customizations and submit options required for the CERN pool.
+    It provides the customizations and submit options required for the IC pool.
 
     Additional CERN parameters:
     worker_image: The container to run the Dask workers inside. Defaults to:
@@ -122,22 +122,18 @@ class ICCluster(HTCondorCluster):
         gpus=None,
         batch_name=None,
         lcg=False,
+        worker_port_range=None,
         **base_class_kwargs,
     ):
         """
-        :param: worker_image: The container image to run the Dask workers inside.
-        Defaults to the singularity image. Note n/a in case of cvmfs
-        :param: container_runtime: The container runtime to run the Dask workers inside. Either
-        ``docker`` or ``singularity`` or ``none``, defaults to singularity.
+        :param: worker_image: The container image to run the Dask workers inside.Defaults to the singularity image. Note n/a in case of cvmfs
+        :param: container_runtime: The container runtime to run the Dask workers inside. Either``docker`` or ``singularity`` or ``none``, defaults to singularity.
         :param: disk: The amount of disk to request. Defaults to 20 GiB / core
-        :param: gpus: The number of GPUs to request.
-        Defaults to ``0``.
-        :param batch_name: The HTCondor JobBatchName ro assign to the worker jobs.
-        The default ends up as ``"dask-worker"``
-        :param lcg: If True, use the LCG environment from cvmfs. Please note you need to have
-        loaded the environment before running the python interpreter. Defaults to False.
-        :param kwargs: Additional keyword arguments like ``cores`` or ``memory`` to pass
-        to `dask_jobqueue.HTCondorCluster`.
+        :param: gpus: The number of GPUs to request. Defaults to ``0``.
+        :param batch_name: The HTCondor JobBatchName to assign to the worker jobs. The default ends up as ``"dask-worker"``
+        :param lcg: If True, use the LCG environment from cvmfs. Please note you need to haveloaded the environment before running the python interpreter. Defaults to False.
+        :param worker_port_range: The range of ports to use for the workers. If None, defaults to ``[60000, 60999]``.
+        :param base_class_kwargs: Additional keyword arguments like ``cores`` or ``memory`` to pass to `dask_jobqueue.HTCondorCluster`.
         """
 
         if image_type is not None:
@@ -156,6 +152,8 @@ class ICCluster(HTCondorCluster):
                     f"You need to have loaded the LCG environment before running the python interpreter. Current interpreter: {sys.executable}"
                 )
 
+        worker_port_range = worker_port_range or [60000, 60099]
+
         base_class_kwargs = ICCluster._modify_kwargs(
             base_class_kwargs,
             worker_image=worker_image,
@@ -163,6 +161,7 @@ class ICCluster(HTCondorCluster):
             gpus=gpus,
             batch_name=batch_name,
             lcg=lcg,
+            worker_port_range=worker_port_range,
         )
 
         warnings.simplefilter(action="ignore", category=FutureWarning)
@@ -181,12 +180,14 @@ class ICCluster(HTCondorCluster):
         gpus=None,
         batch_name=None,
         lcg=False,
+        worker_port_range=None,
     ):
         """
         This method implements the special modifications to adapt dask-jobqueue to run on the CERN cluster.
 
         See the class __init__ for the details of the arguments.
         """
+
         modified = kwargs.copy()
 
         container_runtime = container_runtime or dask.config.get(
@@ -240,17 +241,38 @@ class ICCluster(HTCondorCluster):
             {"transfer_output_files": '""'},
         )
 
+        # We don't support -spool (for now, at least)
         submit_command_extra = kwargs.get("submit_command_extra", [])
-        if "-spool" not in submit_command_extra:
-            submit_command_extra.append("-spool")
-            modified["submit_command_extra"] = submit_command_extra
+        if "-spool" in submit_command_extra:
+            raise NotImplementedError(
+                "The '-spool' option is not supported with ICCluster"
+            )
 
+        # Add extra args
         modified["worker_extra_args"] = [
             *kwargs.get(
                 "worker_extra_args",
                 dask.config.get(f"jobqueue.{cls.config_name}.worker_extra_args"),
             ),
-            "--worker-port",
-            "10000:10100",
+            f"--worker-port {worker_port_range[0]}:{worker_port_range[-1]}",
         ]
+
+        # Handle GPUs
+        existing_env = (
+            kwargs.get("job_extra", {})
+            or dask.config.get(f"jobqueue.{cls.config_name}.job_extra", {})
+        ).get("environment", "")
+        nvml_env = "DASK_DISTRIBUTED__DIAGNOSTICS__NVML=False"
+        if gpus is None:
+            # Sometimes we can land on a GPU node, even if we don't request GPUs
+            # To avoid pynvml.nvml.NVMLError_LibRmVersionMismatch, we turn off GPU monitoring
+            if existing_env:
+                combined_env = f"{existing_env},{nvml_env}"
+            else:
+                combined_env = nvml_env
+            modified["job_extra_directives"] = merge(
+                modified.get("job_extra_directives", {}),
+                {"environment": combined_env},
+            )
+
         return modified

@@ -1,14 +1,18 @@
 jobqueue:
-  cern:
+  ic:
     name: dask-worker
 
     # default JobBatchName
     batch-name: dask-worker
 
+    # Default worker setup
+    python: null
+    worker_command: distributed.cli.dask_worker
+
     # Default job resource requests
     cores: 1
     gpus: null
-    memory: "3 GiB"
+    memory: "4 GiB"
     processes: null
 
     # default worker image
