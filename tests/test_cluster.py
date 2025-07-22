@@ -1,84 +1,95 @@
-import os
 import unittest
 from pyfakefs.fake_filesystem_unittest import TestCase
-from unittest.mock import patch
 from dask_iclx.cluster import check_job_script_prologue
 from dask_iclx.cluster import get_xroot_url
 from dask_iclx import ICCluster
 
 
 class TestCluster(TestCase):
-
-#    def setUp(self):
-#        self.setUpPyfakefs()
+    #    def setUp(self):
+    #        self.setUpPyfakefs()
 
     def test_job_script_prologue(self):
-        job_script_prologue = ["export PYTHONHOME=/usr/local/bin/python", 'export LD_LIBRARY_PATH="/usr/local/lib"']
+        job_script_prologue = [
+            "export PYTHONHOME=/usr/local/bin/python",
+            'export LD_LIBRARY_PATH="/usr/local/lib"',
+        ]
         self.assertFalse(check_job_script_prologue("PATH", []))
         self.assertTrue(check_job_script_prologue("PYTHONHOME", job_script_prologue))
-        self.assertTrue(check_job_script_prologue("LD_LIBRARY_PATH", job_script_prologue))
+        self.assertTrue(
+            check_job_script_prologue("LD_LIBRARY_PATH", job_script_prologue)
+        )
         self.assertFalse(check_job_script_prologue("PATH", job_script_prologue))
 
     def test_xroot_url(self):
-        for p in ["/eos/user/b/bejones/SWAN_projects", "/eos/home-b/bejones/SWAN_projects", "/eos/home-io3/b/bejones/SWAN_projects"]:
-            self.assertEqual(get_xroot_url(p), "root://eosuser.cern.ch//eos/user/b/bejones/SWAN_projects", f"{p}")
+        for p in [
+            "/eos/user/b/bejones/SWAN_projects",
+            "/eos/home-b/bejones/SWAN_projects",
+            "/eos/home-io3/b/bejones/SWAN_projects",
+        ]:
+            self.assertEqual(
+                get_xroot_url(p),
+                "root://eosuser.cern.ch//eos/user/b/bejones/SWAN_projects",
+                f"{p}",
+            )
 
     def test_submit_command_extra(self):
         with ICCluster(
-            cores = 4,
-            processes = 2,
-            memory = "3000MB",
-            disk = "1000MB",
+            cores=4,
+            processes=2,
+            memory="3000MB",
+            disk="1000MB",
         ) as cluster:
-            self.assertIn("-spool", cluster.new_spec['options']['submit_command_extra'])
-
+            self.assertIn("-spool", cluster.new_spec["options"]["submit_command_extra"])
 
     def test_job_script_singularity(self):
         with ICCluster(
-            cores = 4,
-            processes = 2,
-            memory = "3000MB",
-            disk = "1000MB",
-            container_runtime = "singularity",
-            job_extra_directives = {
+            cores=4,
+            processes=2,
+            memory="3000MB",
+            disk="1000MB",
+            container_runtime="singularity",
+            job_extra_directives={
                 "MY.Jobflavour": '"longlunch"',
             },
         ) as cluster:
             job_script = cluster.job_script()
             self.assertIn('MY.Jobflavour = "longlunch"', job_script)
-            self.assertIn('MY.SingularityImage = "/cvmfs/unpacked.cern.ch/gitlab-registry.cern.ch/batch-team/dask-lxplus/lxdask-al9:latest"', job_script)
-
+            self.assertIn(
+                'MY.SingularityImage = "/cvmfs/unpacked.cern.ch/gitlab-registry.cern.ch/batch-team/dask-lxplus/lxdask-al9:latest"',
+                job_script,
+            )
 
     def test_job_script_docker(self):
         with ICCluster(
-            cores = 4,
-            processes = 2,
-            memory = "3000MB",
-            disk = "1000MB",
-            container_runtime = "docker",
-            worker_image = "dask-lxplus/lxdask-al9:latest",
-            job_extra_directives = {
+            cores=4,
+            processes=2,
+            memory="3000MB",
+            disk="1000MB",
+            container_runtime="docker",
+            worker_image="dask-lxplus/lxdask-al9:latest",
+            job_extra_directives={
                 "MY.Jobflavour": '"longlunch"',
             },
         ) as cluster:
             job_script = cluster.job_script()
             self.assertIn('MY.Jobflavour = "longlunch"', job_script)
-            self.assertIn('universe = docker', job_script)
+            self.assertIn("universe = docker", job_script)
             self.assertIn('docker_image = "dask-lxplus/lxdask-al9:latest"', job_script)
 
     def test_job_script_lcg(self):
         with ICCluster(
-                cores=4,
-                processes=4,
-                memory="3000MB",
-                disk="1000MB",
-                lcg=True,
-                env_extra=["FOO=BAR, PATH=/one/two/three:/four/five/six"],
+            cores=4,
+            processes=4,
+            memory="3000MB",
+            disk="1000MB",
+            lcg=True,
+            env_extra=["FOO=BAR, PATH=/one/two/three:/four/five/six"],
         ) as cluster:
             job_script = cluster.job_script()
-            self.assertIn('FOO=BAR', job_script)
-            self.assertIn('PATH=/one/two/three:/four/five/six', job_script)
-            self.assertIn('getenv = true', job_script)
+            self.assertIn("FOO=BAR", job_script)
+            self.assertIn("PATH=/one/two/three:/four/five/six", job_script)
+            self.assertIn("getenv = true", job_script)
 
     def test_job_script_outputdest(self):
         with ICCluster(
@@ -86,10 +97,13 @@ class TestCluster(TestCase):
             processes=4,
             memory="3000MB",
             disk="1000MB",
-            log_directory="/eos/user/e/etejedor/dasklogs/"
+            log_directory="/eos/user/e/etejedor/dasklogs/",
         ) as cluster:
             job_script = cluster.job_script()
-            self.assertIn("output_destination = root://eosuser.cern.ch//eos/user/e/etejedor/dasklogs/", job_script)
+            self.assertIn(
+                "output_destination = root://eosuser.cern.ch//eos/user/e/etejedor/dasklogs/",
+                job_script,
+            )
 
     def test_job_script_nooutputdest(self):
         with ICCluster(
@@ -102,5 +116,5 @@ class TestCluster(TestCase):
             self.assertNotIn("output_destination", job_script)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

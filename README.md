@@ -5,7 +5,7 @@ Builds on top of Dask-Jobqueue to enable jobs to run on the IC HTCondor cluster.
 ## Summary
 
 ```python
-from distributed import Client 
+from distributed import Client
 from dask_iclx import ICCluster
 import socket
 
@@ -30,28 +30,28 @@ cluster = ICCluster(
 
 <!-- ## CERN extras
 
-There are a few changes in the wrapper to address some of the particular features of the CERN 
+There are a few changes in the wrapper to address some of the particular features of the CERN
 HTCondor cluster, but there are also a few changes to detail here. -->
 
 <!-- ### Options
 
-`lcg`: If set to `True` this will validate and use the LCG python environment per the managed [LCG](https://lcgdocs.web.cern.ch/lcgdocs/lcgreleases/introduction/) 
-releases. It will send the environment of the submitting scheduler to the batch worker node. DASK 
-normally requires that both the scheduler and the worker is the same python versions and libraries. 
-At CERN this would mean that you should, assuming say the default of `EL9` worker nodes, that 
-the scheduler is run on something like`lxplus.cern.ch`also running EL9`. 
+`lcg`: If set to `True` this will validate and use the LCG python environment per the managed [LCG](https://lcgdocs.web.cern.ch/lcgdocs/lcgreleases/introduction/)
+releases. It will send the environment of the submitting scheduler to the batch worker node. DASK
+normally requires that both the scheduler and the worker is the same python versions and libraries.
+At CERN this would mean that you should, assuming say the default of `EL9` worker nodes, that
+the scheduler is run on something like`lxplus.cern.ch`also running EL9`.
 An example use would be to do the following before running dask:
 ```bash
 $ . /cvmfs/sft.cern.ch/lcg/views/LCG_107/x86_64-el9-gcc14-opt/setup.sh
 ```
 
-`container_runtime`: Can be set to `"singularity"` or `docker` or `"none"`. If a runtime is needed 
-for the worker, this selects which will be used for the `HTCondor` job the worker runs. In principle 
-it should not be necessary when using `lcg` and should therefore be set to `"none"`. Default though 
+`container_runtime`: Can be set to `"singularity"` or `docker` or `"none"`. If a runtime is needed
+for the worker, this selects which will be used for the `HTCondor` job the worker runs. In principle
+it should not be necessary when using `lcg` and should therefore be set to `"none"`. Default though
 is `"singularity"`.
 
-`worker_image`: The image that will be used if `container_runtime` is defined to use one. The default 
+`worker_image`: The image that will be used if `container_runtime` is defined to use one. The default
 is defined in `jobqueue-cern.yaml`.
 
-`batch_name`: Optionally set a string that will identify the jobs in `HTCondor`. The default is 
+`batch_name`: Optionally set a string that will identify the jobs in `HTCondor`. The default is
 `"dask-worker"` -->

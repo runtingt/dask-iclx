@@ -36,7 +36,9 @@ def check_job_script_prologue(var, job_script_prologue):
     """
     if not job_script_prologue:
         return False
-    matches = list(filter(lambda x: re.match(f"\W*export {var}\s*=.*", x), job_script_prologue))
+    matches = list(
+        filter(lambda x: re.match(rf"\W*export {var}\s*=.*", x), job_script_prologue)
+    )
     if matches:
         return True
     return False
@@ -61,7 +63,10 @@ def get_xroot_url(eos_path):
     # /eos/home-b/bejones/foo/bar
     # /eos/home-io3/b/bejones/foo/bar
     # Also note this only supports eoshome.cern.ch at this point
-    eos_match = re.match("^/eos/(?:home|user)(?:-\w+)?(?:/\w)?/(?P<username>\w+)(?P<path>/.+)$", eos_path)
+    eos_match = re.match(
+        r"^/eos/(?:home|user)(?:-\w+)?(?:/\w)?/(?P<username>\w+)(?P<path>/.+)$",
+        eos_path,
+    )
     if not eos_match:
         return None
     return f"root://eosuser.cern.ch//eos/user/{eos_match.group('username')[:1]}/{eos_match.group('username')}{eos_match.group('path')}"
@@ -70,60 +75,55 @@ def get_xroot_url(eos_path):
 class ICJob(HTCondorJob):
     config_name = "cern"
 
-    def __init__(self,
-                 scheduler=None,
-                 name=None,
-                 disk=None,
-                 **base_class_kwargs
-                 ):
-
+    def __init__(self, scheduler=None, name=None, disk=None, **base_class_kwargs):
         if disk is None:
             num_cores = base_class_kwargs.get("cores", 1)
-            disk = f'{int(num_cores) * 20} GB'
+            disk = f"{int(num_cores) * 20} GB"
 
-        warnings.simplefilter(action='ignore', category=FutureWarning)
+        warnings.simplefilter(action="ignore", category=FutureWarning)
 
         super().__init__(scheduler=scheduler, name=name, disk=disk, **base_class_kwargs)
 
         warnings.resetwarnings()
 
         if hasattr(self, "log_directory"):
-                self.job_header_dict.pop("Stream_Output", None)
-                self.job_header_dict.pop("Stream_Error", None)
+            self.job_header_dict.pop("Stream_Output", None)
+            self.job_header_dict.pop("Stream_Error", None)
 
 
 class ICCluster(HTCondorCluster):
     __doc__ = (
         HTCondorCluster.__doc__
-    +"""
+        + """
     A customized :class:`dask_jobqueue.HTCondorCluster` subclass for spawning Dask workers in the CERN HTCondor pool
 
     It provides the customizations and submit options required for the CERN pool.
-    
+
     Additional CERN parameters:
-    worker_image: The container to run the Dask workers inside. Defaults to: 
+    worker_image: The container to run the Dask workers inside. Defaults to:
     ``"/cvmfs/unpacked.cern.ch/gitlab-registry.cern.ch/batch-team/dask-lxplus/lxdask-al9:latest"``
-    container_runtime: If a container runtime is not required, choose ``none``, otherwise ``singularity`` (the default) 
-    or ``docker``. If using ``lcg`` it shouldn't be necessary as long as the scheduler side matches the client, which 
+    container_runtime: If a container runtime is not required, choose ``none``, otherwise ``singularity`` (the default)
+    or ``docker``. If using ``lcg`` it shouldn't be necessary as long as the scheduler side matches the client, which
     at CERN means the lxplus version corresponding to the lxbatch version.
     batch_name: The HTCondor JobBatchName assigned to the worker jobs. The default ends up as ``"dask-worker"``
-    lcg: If set to ``True`` will use the LCG environment in CVMFS and use that to run the python interpreter on server 
-    and client. Needs to be sourced before running the python interpreter. Defaults to False. 
+    lcg: If set to ``True`` will use the LCG environment in CVMFS and use that to run the python interpreter on server
+    and client. Needs to be sourced before running the python interpreter. Defaults to False.
     """
     )
     config_name = "ic"
     job_cls = ICJob
 
-    def __init__(self,
-                 *,
-                 worker_image = None,
-                 image_type = None,
-                 container_runtime = None,
-                 gpus = None,
-                 batch_name = None,
-                 lcg = False,
-                 **base_class_kwargs,
-                 ):
+    def __init__(
+        self,
+        *,
+        worker_image=None,
+        image_type=None,
+        container_runtime=None,
+        gpus=None,
+        batch_name=None,
+        lcg=False,
+        **base_class_kwargs,
+    ):
         """
         :param: worker_image: The container image to run the Dask workers inside.
         Defaults to the singularity image. Note n/a in case of cvmfs
@@ -148,8 +148,13 @@ class ICCluster(HTCondorCluster):
             container_runtime = container_runtime or image_type
 
         if lcg:
-            if not re.match('^/cvmfs/sft(?:-nightlies)?.cern.ch/lcg/.+/python[2,3]?$', sys.executable):
-                raise ValueError(f"You need to have loaded the LCG environment before running the python interpreter. Current interpreter: {sys.executable}")
+            if not re.match(
+                "^/cvmfs/sft(?:-nightlies)?.cern.ch/lcg/.+/python[2,3]?$",
+                sys.executable,
+            ):
+                raise ValueError(
+                    f"You need to have loaded the LCG environment before running the python interpreter. Current interpreter: {sys.executable}"
+                )
 
         base_class_kwargs = ICCluster._modify_kwargs(
             base_class_kwargs,
@@ -160,22 +165,23 @@ class ICCluster(HTCondorCluster):
             lcg=lcg,
         )
 
-        warnings.simplefilter(action='ignore', category=FutureWarning)
+        warnings.simplefilter(action="ignore", category=FutureWarning)
 
         super().__init__(**base_class_kwargs)
 
         warnings.resetwarnings()
 
     @classmethod
-    def _modify_kwargs(cls,
-                       kwargs,
-                       *,
-                       worker_image = None,
-                       container_runtime = None,
-                       gpus = None,
-                       batch_name = None,
-                       lcg = False,
-                       ):
+    def _modify_kwargs(
+        cls,
+        kwargs,
+        *,
+        worker_image=None,
+        container_runtime=None,
+        gpus=None,
+        batch_name=None,
+        lcg=False,
+    ):
         """
         This method implements the special modifications to adapt dask-jobqueue to run on the CERN cluster.
 
@@ -183,18 +189,33 @@ class ICCluster(HTCondorCluster):
         """
         modified = kwargs.copy()
 
-        container_runtime = container_runtime or dask.config.get(f"jobqueue.{cls.config_name}.container-runtime")
-        worker_image = worker_image or dask.config.get(f"jobqueue.{cls.config_name}.worker-image")
+        container_runtime = container_runtime or dask.config.get(
+            f"jobqueue.{cls.config_name}.container-runtime"
+        )
+        worker_image = worker_image or dask.config.get(
+            f"jobqueue.{cls.config_name}.worker-image"
+        )
 
-        logdir = modified.get("log_directory", dask.config.get(f"jobqueue.{cls.config_name}.log-directory", None))
+        logdir = modified.get(
+            "log_directory",
+            dask.config.get(f"jobqueue.{cls.config_name}.log-directory", None),
+        )
         if logdir:
             modified["log_directory"] = logdir
-        xroot_url = get_xroot_url(modified["log_directory"]) if logdir and modified["log_directory"].startswith("/eos/") else None
+        xroot_url = (
+            get_xroot_url(modified["log_directory"])
+            if logdir and modified["log_directory"].startswith("/eos/")
+            else None
+        )
 
         modified["job_extra_directives"] = merge(
             {"universe": "docker" if container_runtime == "docker" else "vanilla"},
-            {"docker_image": f'"{worker_image}"'} if container_runtime == "docker" else None,
-            {"MY.SingularityImage": f'"{worker_image}"'} if container_runtime == "singularity" else None,
+            {"docker_image": f'"{worker_image}"'}
+            if container_runtime == "docker"
+            else None,
+            {"MY.SingularityImage": f'"{worker_image}"'}
+            if container_runtime == "singularity"
+            else None,
             {"request_gpus": str(gpus)} if gpus is not None else None,
             {"MY.IsDaskWorker": "true"},
             # getenv justified in case of LCG as both sides have to be the same environment
@@ -205,20 +226,30 @@ class ICCluster(HTCondorCluster):
             {"Log": "worker-$(ClusterId).log"} if xroot_url else None,
             {"MY.SpoolOnEvict": False} if logdir else None,
             # extra user input
-            kwargs.get("job_extra_directives", dask.config.get(f"jobqueue.{cls.config_name}.job_extra_directives")),
-            kwargs.get("job_extra", dask.config.get(f"jobqueue.{cls.config_name}.job_extra")),
-            {"JobBatchName": f'"{batch_name or dask.config.get(f"jobqueue.{cls.config_name}.batch-name")}"'},
+            kwargs.get(
+                "job_extra_directives",
+                dask.config.get(f"jobqueue.{cls.config_name}.job_extra_directives"),
+            ),
+            kwargs.get(
+                "job_extra", dask.config.get(f"jobqueue.{cls.config_name}.job_extra")
+            ),
+            {
+                "JobBatchName": f'"{batch_name or dask.config.get(f"jobqueue.{cls.config_name}.batch-name")}"'
+            },
             # never transfer files
-            {"transfer_output_files": '""'}
+            {"transfer_output_files": '""'},
         )
 
         submit_command_extra = kwargs.get("submit_command_extra", [])
         if "-spool" not in submit_command_extra:
-            submit_command_extra.append('-spool')
+            submit_command_extra.append("-spool")
             modified["submit_command_extra"] = submit_command_extra
 
         modified["worker_extra_args"] = [
-                *kwargs.get("worker_extra_args", dask.config.get(f"jobqueue.{cls.config_name}.worker_extra_args")),
+            *kwargs.get(
+                "worker_extra_args",
+                dask.config.get(f"jobqueue.{cls.config_name}.worker_extra_args"),
+            ),
             "--worker-port",
             "10000:10100",
         ]
