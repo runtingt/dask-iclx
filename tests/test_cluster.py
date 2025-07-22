@@ -2,9 +2,9 @@ import os
 import unittest
 from pyfakefs.fake_filesystem_unittest import TestCase
 from unittest.mock import patch
-from dask_lxplus.cluster import check_job_script_prologue
-from dask_lxplus.cluster import get_xroot_url
-from dask_lxplus import CernCluster
+from dask_iclx.cluster import check_job_script_prologue
+from dask_iclx.cluster import get_xroot_url
+from dask_iclx import ICCluster
 
 
 class TestCluster(TestCase):
@@ -24,7 +24,7 @@ class TestCluster(TestCase):
             self.assertEqual(get_xroot_url(p), "root://eosuser.cern.ch//eos/user/b/bejones/SWAN_projects", f"{p}")
 
     def test_submit_command_extra(self):
-        with CernCluster(
+        with ICCluster(
             cores = 4,
             processes = 2,
             memory = "3000MB",
@@ -34,7 +34,7 @@ class TestCluster(TestCase):
 
 
     def test_job_script_singularity(self):
-        with CernCluster(
+        with ICCluster(
             cores = 4,
             processes = 2,
             memory = "3000MB",
@@ -50,7 +50,7 @@ class TestCluster(TestCase):
 
 
     def test_job_script_docker(self):
-        with CernCluster(
+        with ICCluster(
             cores = 4,
             processes = 2,
             memory = "3000MB",
@@ -67,7 +67,7 @@ class TestCluster(TestCase):
             self.assertIn('docker_image = "dask-lxplus/lxdask-al9:latest"', job_script)
 
     def test_job_script_lcg(self):
-        with CernCluster(
+        with ICCluster(
                 cores=4,
                 processes=4,
                 memory="3000MB",
@@ -81,7 +81,7 @@ class TestCluster(TestCase):
             self.assertIn('getenv = true', job_script)
 
     def test_job_script_outputdest(self):
-        with CernCluster(
+        with ICCluster(
             cores=4,
             processes=4,
             memory="3000MB",
@@ -92,7 +92,7 @@ class TestCluster(TestCase):
             self.assertIn("output_destination = root://eosuser.cern.ch//eos/user/e/etejedor/dasklogs/", job_script)
 
     def test_job_script_nooutputdest(self):
-        with CernCluster(
+        with ICCluster(
             cores=4,
             processes=4,
             memory="3000MB",

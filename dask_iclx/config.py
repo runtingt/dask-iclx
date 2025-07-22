@@ -4,7 +4,7 @@ import dask
 import yaml
 
 PYPKG_DIR = Path(__file__).parent
-CONFIG_FILE = "jobqueue-cern.yaml"
+CONFIG_FILE = "jobqueue-ic.yaml"
 PKG_CONFIG_FILE = PYPKG_DIR / CONFIG_FILE
 
 def _ensure_user_config_file():

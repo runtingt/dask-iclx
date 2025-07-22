@@ -1,15 +1,15 @@
-# dask-lxplus
+# dask-iclx
 
-Builds on top of Dask-Jobqueue to enable jobs to run on the CERN HTCondor cluster via LXPLUS.
+Builds on top of Dask-Jobqueue to enable jobs to run on the IC HTCondor cluster.
 
 ## Summary
 
 ```python
 from distributed import Client 
-from dask_lxplus import CernCluster
+from dask_iclx import ICCluster
 import socket
 
-cluster = CernCluster(
+cluster = ICCluster(
     cores = 1,
     memory = '3000MB',
     disk = '10GB',
@@ -28,11 +28,13 @@ cluster = CernCluster(
 )
 ```
 
-## CERN extras
-There are a few changes in the wrapper to address some of the particular features of the CERN 
-HTCondor cluster, but there are also a few changes to detail here.
+<!-- ## CERN extras
 
-### Options
+There are a few changes in the wrapper to address some of the particular features of the CERN 
+HTCondor cluster, but there are also a few changes to detail here. -->
+
+<!-- ### Options
+
 `lcg`: If set to `True` this will validate and use the LCG python environment per the managed [LCG](https://lcgdocs.web.cern.ch/lcgdocs/lcgreleases/introduction/) 
 releases. It will send the environment of the submitting scheduler to the batch worker node. DASK 
 normally requires that both the scheduler and the worker is the same python versions and libraries. 
@@ -52,4 +54,4 @@ is `"singularity"`.
 is defined in `jobqueue-cern.yaml`.
 
 `batch_name`: Optionally set a string that will identify the jobs in `HTCondor`. The default is 
-`"dask-worker"`
+`"dask-worker"` -->

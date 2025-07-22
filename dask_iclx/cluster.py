@@ -67,7 +67,7 @@ def get_xroot_url(eos_path):
     return f"root://eosuser.cern.ch//eos/user/{eos_match.group('username')[:1]}/{eos_match.group('username')}{eos_match.group('path')}"
 
 
-class CernJob(HTCondorJob):
+class ICJob(HTCondorJob):
     config_name = "cern"
 
     def __init__(self,
@@ -92,7 +92,7 @@ class CernJob(HTCondorJob):
                 self.job_header_dict.pop("Stream_Error", None)
 
 
-class CernCluster(HTCondorCluster):
+class ICCluster(HTCondorCluster):
     __doc__ = (
         HTCondorCluster.__doc__
     +"""
@@ -111,11 +111,8 @@ class CernCluster(HTCondorCluster):
     and client. Needs to be sourced before running the python interpreter. Defaults to False. 
     """
     )
-    config_name = "cern"
-    job_cls = CernJob
-
-    # note this is where we'd specify a CERN override of the job definition
-    # job_cls = CernJob
+    config_name = "ic"
+    job_cls = ICJob
 
     def __init__(self,
                  *,
@@ -154,7 +151,7 @@ class CernCluster(HTCondorCluster):
             if not re.match('^/cvmfs/sft(?:-nightlies)?.cern.ch/lcg/.+/python[2,3]?$', sys.executable):
                 raise ValueError(f"You need to have loaded the LCG environment before running the python interpreter. Current interpreter: {sys.executable}")
 
-        base_class_kwargs = CernCluster._modify_kwargs(
+        base_class_kwargs = ICCluster._modify_kwargs(
             base_class_kwargs,
             worker_image=worker_image,
             container_runtime=container_runtime,
@@ -226,5 +223,3 @@ class CernCluster(HTCondorCluster):
             "10000:10100",
         ]
         return modified
-
-
