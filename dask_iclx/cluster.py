@@ -37,7 +37,7 @@ def check_job_script_prologue(var, job_script_prologue):
     if not job_script_prologue:
         return False
     matches = list(
-        filter(lambda x: re.match(rf"\W*export {var}\s*=.*", x), job_script_prologue)
+        filter(lambda x: re.match(rf"\W*export\s+{var}\s*=.*", x), job_script_prologue)
     )
     if matches:
         return True
@@ -187,7 +187,6 @@ class ICCluster(HTCondorCluster):
 
         See the class __init__ for the details of the arguments.
         """
-
         modified = kwargs.copy()
 
         container_runtime = container_runtime or dask.config.get(
@@ -259,8 +258,8 @@ class ICCluster(HTCondorCluster):
 
         # Handle GPUs
         existing_env = (
-            kwargs.get("job_extra", {})
-            or dask.config.get(f"jobqueue.{cls.config_name}.job_extra", {})
+            kwargs.get("job_extra_directives", {})
+            or dask.config.get(f"jobqueue.{cls.config_name}.job_extra_directives", {})
         ).get("environment", "")
         nvml_env = "DASK_DISTRIBUTED__DIAGNOSTICS__NVML=False"
         if gpus is None:
@@ -270,6 +269,13 @@ class ICCluster(HTCondorCluster):
                 combined_env = f"{existing_env},{nvml_env}"
             else:
                 combined_env = nvml_env
+
+            # Strip the environment from the old job_extra_directives
+            old_env = modified.get("job_extra_directives", {}).get("environment", "")
+            if old_env:
+                del modified["job_extra_directives"]["environment"]
+
+            # Add the new environment variable
             modified["job_extra_directives"] = merge(
                 modified.get("job_extra_directives", {}),
                 {"environment": combined_env},

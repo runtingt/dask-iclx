@@ -1,2 +1,4 @@
 dask_iclx.egg-info/
-dask_iclx/__pycache__/
+**/__pycache__/
+.coverage
+.vscode/
