@@ -105,7 +105,6 @@ class ICCluster(HTCondorCluster):
     container_runtime: If a container runtime is not required, choose ``none``, otherwise ``singularity`` (the default)
     or ``docker``. If using ``lcg`` it shouldn't be necessary as long as the scheduler side matches the client, which
     at CERN means the lxplus version corresponding to the lxbatch version.
-    batch_name: The HTCondor JobBatchName assigned to the worker jobs. The default ends up as ``"dask-worker"``
     lcg: If set to ``True`` will use the LCG environment in CVMFS and use that to run the python interpreter on server
     and client. Needs to be sourced before running the python interpreter. Defaults to False.
     """
@@ -120,7 +119,6 @@ class ICCluster(HTCondorCluster):
         image_type=None,
         container_runtime=None,
         gpus=None,
-        batch_name=None,
         lcg=False,
         worker_port_range=None,
         **base_class_kwargs,
@@ -130,7 +128,6 @@ class ICCluster(HTCondorCluster):
         :param: container_runtime: The container runtime to run the Dask workers inside. Either``docker`` or ``singularity`` or ``none``, defaults to singularity.
         :param: disk: The amount of disk to request. Defaults to 20 GiB / core
         :param: gpus: The number of GPUs to request. Defaults to ``0``.
-        :param batch_name: The HTCondor JobBatchName to assign to the worker jobs. The default ends up as ``"dask-worker"``
         :param lcg: If True, use the LCG environment from cvmfs. Please note you need to haveloaded the environment before running the python interpreter. Defaults to False.
         :param worker_port_range: The range of ports to use for the workers. If None, defaults to ``[60000, 60999]``.
         :param base_class_kwargs: Additional keyword arguments like ``cores`` or ``memory`` to pass to `dask_jobqueue.HTCondorCluster`.
@@ -159,7 +156,6 @@ class ICCluster(HTCondorCluster):
             worker_image=worker_image,
             container_runtime=container_runtime,
             gpus=gpus,
-            batch_name=batch_name,
             lcg=lcg,
             worker_port_range=worker_port_range,
         )
@@ -178,7 +174,6 @@ class ICCluster(HTCondorCluster):
         worker_image=None,
         container_runtime=None,
         gpus=None,
-        batch_name=None,
         lcg=False,
         worker_port_range=None,
     ):
@@ -233,9 +228,6 @@ class ICCluster(HTCondorCluster):
             kwargs.get(
                 "job_extra", dask.config.get(f"jobqueue.{cls.config_name}.job_extra")
             ),
-            {
-                "JobBatchName": f'"{batch_name or dask.config.get(f"jobqueue.{cls.config_name}.batch-name")}"'
-            },
             # never transfer files
             {"transfer_output_files": '""'},
         )

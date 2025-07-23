@@ -31,7 +31,7 @@ repos:
   rev: v2.4.0
   hooks:
   - id: codespell
-    args: ["-L Runting, runting"]
+    args: ["-L Runting, runting, hep"]
 
 - repo: https://github.com/abravalheri/validate-pyproject
   rev: v0.23

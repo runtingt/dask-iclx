@@ -1,5 +1,8 @@
 # dask-iclx
 
+[![python version](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/) [![codecov](https://codecov.io/github/runtingt/dask-iclx/branch/main/graph/badge.svg?token=ZWGLEIVTNG)](https://codecov.io/github/runtingt/dask-iclx) [![License](https://img.shields.io/badge/License-Apache_2.0-yellow.svg)](https://opensource.org/licenses/Apache-2.0)
+
+
 Builds on top of Dask-Jobqueue to enable jobs to run on the IC HTCondor cluster.
 
 ## Summary
@@ -9,23 +12,32 @@ from distributed import Client
 from dask_iclx import ICCluster
 import socket
 
-cluster = ICCluster(
+with ICCluster(
     cores = 1,
     memory = '3000MB',
     disk = '10GB',
     death_timeout = '60',
-    lcg = True,
+    lcg = False,
     nanny = False,
     container_runtime = 'none',
-    log_directory = '/eos/user/b/ben/condor/log',
+    log_directory = '/vols/experiment/username/dask-logs',
     scheduler_options = {
-        'port': 8786,
+        'port': 60000,
         'host': socket.gethostname(),
     },
     job_extra = {
-        'MY.JobFlavour': '"longlunch"',
+        "+MaxRuntime": "1200",
     },
-)
+    name="ClusterName",
+) as cluster:
+    n_workers = 1
+    with Client(cluster) as client:
+        futures = []
+        cluster.scale(n_workers)
+        for _ in range(n_workers):
+            f = client.submit(lambda: socket.gethostname())
+            futures.append(f)
+        print(client.gather(futures))  # ['lxb10.hep.ph.ic.ac.uk']
 ```
 
 <!-- ## CERN extras
