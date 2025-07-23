@@ -2,3 +2,4 @@ dask_iclx.egg-info/
 **/__pycache__/
 .coverage
 .vscode/
+.reports
