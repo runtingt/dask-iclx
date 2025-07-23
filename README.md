@@ -4,6 +4,12 @@
 
 Adapts the [dask-lxplus](https://github.com/cernops/dask-lxplus/) package to enable jobs to run on the IC HTCondor cluster.
 
+## Setup
+
+```bash
+pip install dask-iclx
+```
+
 ## Usage
 
 ```python
