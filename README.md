@@ -1,8 +1,8 @@
 # dask-iclx
 
-[![python version](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/) ![Local tests](https://img.shields.io/endpoint?url=https%3A%2F%2Fwww.hep.ph.ic.ac.uk%2F~tr1123%2Fdask-iclx%2Flatest.json&link=https%3A%2F%2Fwww.hep.ph.ic.ac.uk%2F~tr1123%2Fdask-iclx%2Flatest.html) [![codecov](https://codecov.io/github/runtingt/dask-iclx/branch/main/graph/badge.svg?token=ZWGLEIVTNG)](https://codecov.io/github/runtingt/dask-iclx) [![License](https://img.shields.io/badge/License-Apache_2.0-yellow.svg)](https://opensource.org/licenses/Apache-2.0)
+[![python version](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/) [![Local tests](https://img.shields.io/endpoint?url=https%3A%2F%2Fwww.hep.ph.ic.ac.uk%2F~tr1123%2Fdask-iclx%2Flatest.json)](https://www.hep.ph.ic.ac.uk/~tr1123/dask-iclx/latest.html) [![codecov](https://codecov.io/github/runtingt/dask-iclx/branch/main/graph/badge.svg?token=ZWGLEIVTNG)](https://codecov.io/github/runtingt/dask-iclx) [![License](https://img.shields.io/badge/License-Apache_2.0-yellow.svg)](https://opensource.org/licenses/Apache-2.0)
 
-Builds on top of Dask-Jobqueue to enable jobs to run on the IC HTCondor cluster.
+Adapts the [dask-lxplus](https://github.com/cernops/dask-lxplus/) package to enable jobs to run on the IC HTCondor cluster.
 
 ## Summary
 
