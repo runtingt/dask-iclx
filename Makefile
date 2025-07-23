@@ -39,7 +39,7 @@ test-integration-report:
     # Produce the report in markdown and convert it to HTML
 	$(eval GIT_HASH := $(shell git rev-parse --short HEAD))
 	@{ \
-	pytest -m "integration" --md-report --md-report-verbose=2 --md-report-output=".reports/$(GIT_HASH).md"; \
+	pytest -n 8 -m "integration" --md-report --md-report-verbose=2 --md-report-output=".reports/$(GIT_HASH).md"; \
 	echo $$? > ".reports/$(GIT_HASH).status"; \
 	}
 	pandoc -s -o ".reports/$(GIT_HASH).html" ".reports/$(GIT_HASH).md" --css=./style.css

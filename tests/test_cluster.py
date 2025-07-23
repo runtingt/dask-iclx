@@ -263,14 +263,14 @@ class TestICClusterModifyKwargs:
         kwargs = {"cores": 2, "memory": "4GB"}
         result = ICCluster._modify_kwargs(
             kwargs,
-            container_runtime="docker",
+            container_runtime="singularity",
             worker_image="custom/image",
             worker_port_range=[60000, 60099],
         )
 
         assert "job_extra_directives" in result
-        assert result["job_extra_directives"]["universe"] == "docker"
-        assert result["job_extra_directives"]["docker_image"] == '"custom/image"'
+        assert result["job_extra_directives"]["universe"] == "vanilla"
+        assert result["job_extra_directives"]["MY.SingularityImage"] == '"custom/image"'
 
     @patch("dask.config.get")
     def test_modify_kwargs_singularity(self, mock_config_get):

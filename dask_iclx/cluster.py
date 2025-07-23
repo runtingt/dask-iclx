@@ -102,8 +102,8 @@ class ICCluster(HTCondorCluster):
     Additional CERN parameters:
     worker_image: The container to run the Dask workers inside. Defaults to:
     ``"/cvmfs/unpacked.cern.ch/gitlab-registry.cern.ch/batch-team/dask-lxplus/lxdask-al9:latest"``
-    container_runtime: If a container runtime is not required, choose ``none``, otherwise ``singularity`` (the default)
-    or ``docker``. If using ``lcg`` it shouldn't be necessary as long as the scheduler side matches the client, which
+    container_runtime: If a container runtime is not required, choose ``none``, otherwise ``singularity`` (the default).
+    If using ``lcg`` it shouldn't be necessary as long as the scheduler side matches the client, which
     at CERN means the lxplus version corresponding to the lxbatch version.
     lcg: If set to ``True`` will use the LCG environment in CVMFS and use that to run the python interpreter on server
     and client. Needs to be sourced before running the python interpreter. Defaults to False.
@@ -126,7 +126,7 @@ class ICCluster(HTCondorCluster):
     ):
         """
         :param: worker_image: The container image to run the Dask workers inside.Defaults to the singularity image. Note n/a in case of cvmfs
-        :param: container_runtime: The container runtime to run the Dask workers inside. Either``docker`` or ``singularity`` or ``none``, defaults to singularity.
+        :param: container_runtime: The container runtime to run the Dask workers inside. Either ``singularity`` or ``none``, defaults to singularity.
         :param: disk: The amount of disk to request. Defaults to 20 GiB / core
         :param: gpus: The number of GPUs to request. Defaults to ``0``.
         :param lcg: If True, use the LCG environment from cvmfs. Please note you need to haveloaded the environment before running the python interpreter. Defaults to False.
@@ -208,10 +208,7 @@ class ICCluster(HTCondorCluster):
         )
 
         modified["job_extra_directives"] = merge(
-            {"universe": "docker" if container_runtime == "docker" else "vanilla"},
-            {"docker_image": f'"{worker_image}"'}
-            if container_runtime == "docker"
-            else None,
+            {"universe": "vanilla"},
             {"MY.SingularityImage": f'"{worker_image}"'}
             if container_runtime == "singularity"
             else None,
