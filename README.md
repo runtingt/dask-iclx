@@ -4,7 +4,7 @@
 
 Adapts the [dask-lxplus](https://github.com/cernops/dask-lxplus/) package to enable jobs to run on the IC HTCondor cluster.
 
-## Summary
+## Usage
 
 ```python
 from distributed import Client

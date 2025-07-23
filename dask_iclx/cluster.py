@@ -107,6 +107,7 @@ class ICCluster(HTCondorCluster):
     at CERN means the lxplus version corresponding to the lxbatch version.
     lcg: If set to ``True`` will use the LCG environment in CVMFS and use that to run the python interpreter on server
     and client. Needs to be sourced before running the python interpreter. Defaults to False.
+    worker_port_range: The range of ports to use for the workers. If None, defaults to ``[60000, 60999]``.
     """
     )
     config_name = "ic"
@@ -161,6 +162,9 @@ class ICCluster(HTCondorCluster):
         )
 
         warnings.simplefilter(action="ignore", category=FutureWarning)
+        warnings.filterwarnings(
+            "ignore", message=".*Using a temporary security object.*"
+        )
 
         super().__init__(**base_class_kwargs)
 
@@ -272,5 +276,8 @@ class ICCluster(HTCondorCluster):
                 modified.get("job_extra_directives", {}),
                 {"environment": combined_env},
             )
+
+        # Enforce security
+        modified["security"] = True
 
         return modified
