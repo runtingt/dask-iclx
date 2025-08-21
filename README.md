@@ -6,6 +6,11 @@ Adapts the [dask-lxplus](https://github.com/cernops/dask-lxplus/) package to ena
 
 ## Setup
 
+Install from either `conda-forge`
+```bash
+conda install dask-iclx
+```
+or `PyPI`
 ```bash
 pip install dask-iclx
 ```
