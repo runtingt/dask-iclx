@@ -46,3 +46,5 @@ jobqueue:
     worker_extra_args: []
 
     job_script_prologue: []
+
+    cancel-command-extra: ["-forcex"]    # Extra condor_rm arguments
