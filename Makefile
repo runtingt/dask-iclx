@@ -38,13 +38,14 @@ test-integration:
 test-integration-report:
     # Produce the report in markdown and convert it to HTML
 	$(eval GIT_HASH := $(shell git rev-parse --short HEAD))
+	@mkdir -p .reports
 	@{ \
-	pytest -n 8 -m "integration" --md-report --md-report-verbose=2 --md-report-output=".reports/$(GIT_HASH).md"; \
-	echo $$? > ".reports/$(GIT_HASH).status"; \
-	}
+		echo "Running integration tests..."; \
+		pytest -n 8 -m "integration" --md-report --md-report-verbose=2 --md-report-output=".reports/$(GIT_HASH).md"; \
+		echo $$? > ".reports/$(GIT_HASH).status"; \
+    }
 	pandoc -s -o ".reports/$(GIT_HASH).html" ".reports/$(GIT_HASH).md" --css=./style.css
-
-	jq -n --argjson status "$(shell cat .reports/$(GIT_HASH).status)" \
+	jq -n --argjson status "$$(cat .reports/$(GIT_HASH).status)" \
 		--arg current_hash "$(GIT_HASH)" \
 		--arg latest_hash "$(shell git rev-parse --short HEAD)" \
 		'{"schemaVersion": 1, "label": "Local tests", "message": (if $$current_hash != $$latest_hash then "outdated" elif $$status == 0 then "passing" else "failing" end), "color": (if $$current_hash != $$latest_hash then "yellow" elif $$status == 0 then "green" else "red" end)}' \
