@@ -5,6 +5,7 @@ They are marked with @pytest.mark.integration and will be skipped in CI.
 """
 
 import pytest
+import re
 import socket
 import shutil
 from distributed import Client
@@ -183,3 +184,9 @@ def test_iccluster_integration_single(worker_id):
             # Verify we got results
             assert len(results) == n_workers
             assert all(isinstance(hostname, str) for hostname in results)
+
+
+@pytest.mark.integration
+def test_condor_rm():
+    with ICCluster() as cluster:
+        assert re.search(r"condor_rm\s.*-forcex", cluster._dummy_job.cancel_command)
